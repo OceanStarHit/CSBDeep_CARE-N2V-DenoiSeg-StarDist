@@ -42,7 +42,7 @@ def normalize_65535(im):
     return im
 
 def predict_replace_files(img_files):
-
+    
     # for f in tqdm(img_files):
     for f in img_files:
         imag = tifffile.imread(f).astype(np.float32)
@@ -59,18 +59,40 @@ def predict_replace_files(img_files):
         pred = normalize_65535(pred)
         skimage.io.imsave(f, pred.astype(np.uint16))
         
+def predict_place_files(img_files):
+    
+    # for f in tqdm(img_files):
+    for f in img_files:
+        imag = tifffile.imread(f).astype(np.float32)
 
-directory = "datasets/nucleus_custom/train/**/images/"
+        if len(imag.shape)==2:
+            pred = model.predict(imag, axes='YX')
+            # save_tiff_imagej_compatible(f, pred, axes='YX')
+        elif len(imag.shape)==3:
+            pred = np.zeros_like(imag)
+            for i in range(imag.shape[2]):
+                pred[:,:,i] = model.predict(imag[:,:,i], axes='YX')
+            # save_tiff_imagej_compatible(f, pred, axes='YXC')
+
+        f2 = f.split('.')[-2] + '_n2v.tif'
+        print(f2, imag.shape, pred.shape)
+        pred = normalize_65535(pred)
+        skimage.io.imsave(f2, pred.astype(np.uint16))
+        
+
+directory = "datasets/nucleus_custom_for_n2v_test/train/images/"
 filter='*.tif'
 img_files = glob(join(directory, filter))
 # files.sort()
-predict_replace_files(img_files)
+# predict_replace_files(img_files)
+predict_place_files(img_files)
 
-directory = "datasets/nucleus_custom/val/**/images/"
+directory = "datasets/nucleus_custom_for_n2v_test/val/images/"
 filter='*.tif'
 img_files = glob(join(directory, filter))
 # files.sort()
-predict_replace_files(img_files)
+# predict_replace_files(img_files)
+predict_place_files(img_files)
             
 # %% [markdown]
 # ### Show results on training data...
