@@ -1,0 +1,85 @@
+name: DenoiSeg - DSB2018 Example
+description: This is the 2D DenoiSeg example trained on DSB2018 data in python.
+cite:
+- text: "Tim-Oliver Buchholz and Mangal Prakash and Alexander Krull and Florian Jug\
+    \ DenoiSeg: Joint Denoising and Segmentation\nArXiv (2020)"
+  doi: arXiv:2005.02987
+authors:
+- Tim-Oliver Buchholz
+- Mangal Prakash
+- Alexander Krull
+- Florian Jug
+language: python
+framework: tensorflow
+format_version: 0.2.0-csbdeep
+source: denoiseg
+test_input: testinput.tif
+test_output: testoutput.tif
+inputs:
+- name: input
+  axes: byxc
+  data_type: float32
+  data_range:
+  - -inf
+  - inf
+  halo:
+  - 0
+  - 94
+  - 94
+  - 0
+  shape:
+    min:
+    - 1
+    - 16
+    - 16
+    - 1
+    step:
+    - 1
+    - 16
+    - 16
+    - 0
+outputs:
+- name: Placeholder:0
+  axes: byxc
+  data_type: float32
+  data_range:
+  - -inf
+  - inf
+  shape:
+    reference_input: input
+    scale:
+    - 1
+    - 1
+    - 1
+    - 1
+    offset:
+    - 0
+    - 0
+    - 0
+    - 3
+training:
+  source: n2v.train()
+  kwargs: {means: ['19234.156'], stds: ['16922.393'], n_dim: 2, axes: YXC, n_channel_in: 1,
+    n_channel_out: 4, train_loss: denoiseg, unet_n_depth: 4, relative_weights: [1.0,
+      1.0, 5.0], unet_kern_size: 3, unet_n_first: 32, unet_last_activation: linear,
+    probabilistic: false, unet_residual: false, unet_input_shape: [null, null, 1],
+    train_epochs: 10, train_steps_per_epoch: 12, train_learning_rate: 0.0004, train_batch_size: 128,
+    train_tensorboard: true, train_checkpoint: weights_best.h5, train_checkpoint_last: weights_last.h5,
+    train_checkpoint_epoch: weights_now.h5, train_reduce_lr: {monitor: val_loss, factor: 0.5,
+      patience: 10}, batch_norm: true, n2v_perc_pix: 1.5, n2v_patch_shape: [64, 64],
+    n2v_manipulator: uniform_withCP, n2v_neighborhood_radius: 5, denoiseg_alpha: 0.5}
+prediction:
+  weights:
+    source: ./variables/variables
+  preprocess:
+  - kwargs:
+      mean:
+      - 19234.156
+      stdDev:
+      - 16922.393
+  postprocess:
+  - kwargs:
+      mean:
+      - 19234.156
+      stdDev:
+      - 16922.393
